@@ -18,3 +18,4 @@ public:
     CPU(const CPU& obj) = delete;
     static CPU* getInstance();
 };
+
