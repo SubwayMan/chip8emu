@@ -12,7 +12,7 @@ class CPU {
     char delayTimer;
     char soundTimer;
     char reg[16];
-    std::stack<unsigned int> st;
+    std::stack<unsigned int> st; // holds 2 byte values
     std::thread dltThread;
     std::thread stThread;
     std::mutex dltMtx;
@@ -20,6 +20,7 @@ class CPU {
 
     void delayTimerThread();
     void soundTimerThread();
+    void CPUcycle();
 
     CPU();
     ~CPU();

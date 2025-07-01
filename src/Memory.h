@@ -1,5 +1,6 @@
 #pragma once
 #include <mutex>
+#include <fstream>
 
 class MemoryManager {
     static MemoryManager* instance;
@@ -13,5 +14,6 @@ class MemoryManager {
 public:
     MemoryManager(const MemoryManager& obj) = delete;
     static MemoryManager* getInstance();
-    unsigned char load(unsigned int addr);
+    unsigned char loadAddr(unsigned int addr);
+    void loadProgram(std::fstream &file);
 };
