@@ -20,11 +20,12 @@ int main(int argc, char* argv[]) {
 
     p->loadProgram(file);
     file.close();
-    Display display(128, 64);
+    Display display;
 
-    display.togglePixel(10, 10);
-    display.togglePixel(20, 20);
-    display.togglePixel(30, 30);
+    for (int i=0; i<128; ++i) {
+        display.togglePixel(i, 10);
+    }
+
 
     bool running = true;
     SDL_Event e;
