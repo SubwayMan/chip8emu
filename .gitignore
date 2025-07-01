@@ -2,3 +2,5 @@
 *.o
 emu
 build/
+compile_commands.json
+.cache/

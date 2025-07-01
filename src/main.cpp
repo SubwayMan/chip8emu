@@ -2,9 +2,11 @@
 #include <fstream>
 #include "Memory.h"
 #include "CPU.h"
+#include "Display.h"
+#include "SDL3/SDL.h"
+#include "SDL3/SDL_main.h"
 
 int main(int argc, char* argv[]) {
-
     if (argc <= 1) {
         std::cout << "No file passed into emulator. Usage: ./emu <path/to/file>";
         return 1;
@@ -18,20 +20,24 @@ int main(int argc, char* argv[]) {
 
     p->loadProgram(file);
     file.close();
-    
-    for (int i=0; i<16; ++i) {
-        std::cout << std::hex << (int)p->loadAddr(0x200 + i) << " ";
+    Display display(128, 64);
+
+    display.togglePixel(10, 10);
+    display.togglePixel(20, 20);
+    display.togglePixel(30, 30);
+
+    bool running = true;
+    SDL_Event e;
+
+    while (running) {
+        while (SDL_PollEvent(&e)) {
+            if (e.type == SDL_EVENT_QUIT) {
+                running = false;
+            }
+        }
+
+        display.render();
+        SDL_Delay(16);
     }
-    std::cout << std::endl;
-    for (int i=0; i<6; ++i) {
-        std::cout << std::hex << (int)p->loadAddr(0x200 + 0x80 + i) << " ";
-    }
-    std::cout << std::endl;
-    for (int i=0; i<5; ++i) {
-        std::cout << "memaddr " << std::hex << (int)p->loadAddr(0x50 + i) << std::endl;
-    }
-    cpu->setDelayTimer(5);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    cpu->setSoundTimer(5);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
 }
