@@ -38,7 +38,7 @@ void CPU::soundTimerThread() {
     }
 }
 
-CPU::CPU(): delayTimer{0}, soundTimer{0} {
+CPU::CPU(): PC{MemoryManager::programStartAddress}, indexRegister{0}, delayTimer{0}, soundTimer{0} {
     dltThread = std::thread(&CPU::delayTimerThread, this);
     stThread = std::thread(&CPU::soundTimerThread, this);
 }

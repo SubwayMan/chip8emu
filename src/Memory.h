@@ -12,6 +12,8 @@ class MemoryManager {
     void loadFont(const unsigned char* const font);
 
 public:
+    static const unsigned int programStartAddress = 0x200;
+    static const unsigned int maxAddress = 0xFFF;
     MemoryManager(const MemoryManager& obj) = delete;
     static MemoryManager* getInstance();
     unsigned char loadAddr(unsigned int addr);

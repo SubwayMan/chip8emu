@@ -2,6 +2,7 @@
 #include <mutex>
 #include <stack>
 #include <thread>
+#include "Memory.h"
 
 class CPU {
     static CPU* instance;

@@ -45,18 +45,21 @@ unsigned char MemoryManager::loadAddr(unsigned int addr) {
 }
 
 void MemoryManager::loadProgram(std::fstream &file) {
+    
     if (!file.is_open()) {
         throw std::runtime_error("File not found.");
     }
     file.seekg(0);
 
     // CHIP-8 programs are loaded starting at 0x200.
-    unsigned int addr = 0x200;
+    unsigned int addr = MemoryManager::programStartAddress;
     while (file) {
-        if (addr >= 0x10000) 
+        if (addr >= MemoryManager::maxAddress) 
             throw std::out_of_range("Program too large.");
 
         file.get(mem[addr++]);
     }
+
+
 
 }
