@@ -57,3 +57,144 @@ void CPU::setSoundTimer(unsigned char val) {
     std::lock_guard<std::mutex> lock(stMtx);
     soundTimer = val;
 }
+
+void CPU::CPUcycle() {
+    auto memory = MemoryManager::getInstance();
+    unsigned int data = memory->loadAddr(PC);
+    data <<= 8;
+    data += memory->loadAddr(PC + 1);
+    PC+=2;
+    // decode step
+    switch (data & 0xF000) {
+        case 0:
+            switch (data & 0xFFF) {
+                case 0x0E0:
+                    // clear screen
+                    break;
+                case 0x0EE:
+                    // return from subroutine / break
+                    break;
+            }
+            break;
+        case 0x1000:
+            // jump
+            break;
+        case 0x2000:
+            // call subroutine
+            break;
+        case 0x3000:
+            // skip if register equal to immediate
+            break;
+        case 0x4000:
+            // skip if register not equal to immediate
+            break;
+        case 0x5000:
+            // skip if registers equal
+            break;
+        case 0x6000:
+            // set register
+            break;
+        case 0x7000:
+            // add immediate to register
+            break;
+        case 0x8000:
+            // arithmetic
+            switch (data & 0xF) {
+                case 0:
+                    // set reg X to value of reg Y
+                    break;
+                case 1:
+                    // set reg X to OR of X, Y
+                    break;
+                case 2:
+                    // set reg X to AND of X, Y
+                    break;
+                case 3:
+                    // set reg X to XOR of X, Y
+                    break;
+                case 4:
+                    // set reg X to ADD: X + Y
+                    break;
+                // subtraction instructions will set the VF register to 1 (carry bit) if the left operand is greater than the second operand.
+                case 5:
+                    // set reg X to SUB: X - Y
+                    break;
+                // for shifting instructions, there are differences between the original CHIP-8 for COSMAC and  the newer CHIP-48/SUPERCHIP implementations.
+                // Old versions copied VY into VX and then shifted VX,
+                // while newer versions shift VX in-place without affecting VY.
+                // VF (carry flag) is set to the shifted-out bit.
+                case 6:
+                    // right shift X
+                    break;
+                case 7:
+                    // set reg X to SUB: Y - X 
+                    break;
+                case 0xE:
+                    // left shift X
+                    break;
+            }
+            break;
+        case 0x9000:
+            // skip if registers not equal
+            break;
+        case 0xA000:
+            // set index register to immediate
+            break;
+
+        case 0xB000:
+            // jump with offset: jump to value of V0+immediate
+            // slightly different in CHIP-48, where it jumps to XNN + VX
+            break;
+        case 0xC000:
+            // generate random number into VX, AND with immediate
+        case 0xD000:
+            // display/draw
+            break;
+        case 0xE000:
+            // keyboard input: skip if key
+            switch (data & 0xFF) {
+                case 0x9E:
+                    // skip if VX pressed
+                    break;
+                case 0xA1:
+                    // skip if VX NOT pressed
+                    break;
+            }
+            break;
+        case 0xF000:
+            switch (data & 0xFF) {
+                // manipulate and read timers
+                case 0x07:
+                    // read value of delay timer into VX
+                    break;
+                case 0x15:
+                    // set delay timer to value of VX
+                    break;
+                case 0x18:
+                    // set sound timer to value of VX
+                    break;
+                // add to index register
+                case 0x1E:
+                    break;
+                // block until key release, dump keycode into VX
+                case 0x0A:
+                    break;
+                // grab value from VX, set index register to address of that value's font character
+                case 0x29:
+                    break;
+                // output the contents of VX as a three digit decimal number into memory, starting at current position of index register
+                case 0x33:
+                    break;
+                // memory load & store: reads / writes all registers from V0 to VX (inclusive)
+                // inconsistent between classic and CHIP48
+                // classic will increase index register, CHIP48 will not
+                case 0x55:
+                    // store memory
+                    break;
+                case 0x65:
+                    // load memory
+                    break;
+            }
+            
+    }
+}
