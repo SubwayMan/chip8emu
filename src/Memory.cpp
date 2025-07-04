@@ -59,6 +59,8 @@ void MemoryManager::loadProgram(std::fstream &file) {
 
         file.get(mem[addr++]);
     }
+    mem[addr++] = 0xFF;
+    mem[addr] = 0xFF; // load program termination byte
 
 
 

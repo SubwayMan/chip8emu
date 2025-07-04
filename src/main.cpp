@@ -16,7 +16,6 @@ int main(int argc, char* argv[]) {
     std::fstream file = std::fstream(filename, std::ios::binary | std::ios::in);
 
     auto p = MemoryManager::getInstance();
-    auto cpu = CPU::getInstance();
 
     p->loadProgram(file);
     file.close();
@@ -28,6 +27,7 @@ int main(int argc, char* argv[]) {
 
 
     bool running = true;
+    CPU::getInstance();
     SDL_Event e;
 
     while (running) {
