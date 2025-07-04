@@ -1,5 +1,9 @@
 #include "CPU.h"
+#include "Display.h"
 #include <iostream>
+#include <bitset>
+
+#define VF reg[0xF] // carry register
 
 CPU* CPU::instance = nullptr;
 std::mutex CPU::mtx;
@@ -38,7 +42,7 @@ void CPU::soundTimerThread() {
     }
 }
 
-CPU::CPU(): PC{MemoryManager::programStartAddress}, indexRegister{0}, delayTimer{0}, soundTimer{0} {
+CPU::CPU(): PC{MemoryManager::programStartAddress}, indexRegister{0}, delayTimer{0}, soundTimer{0}, memory{nullptr}, display{nullptr}{
     dltThread = std::thread(&CPU::delayTimerThread, this);
     stThread = std::thread(&CPU::soundTimerThread, this);
     mainThread = std::thread(&CPU::CPUthread, this);
@@ -66,7 +70,7 @@ void CPU::CPUthread() {
         unsigned int data = memory->loadAddr(PC);
         data <<= 8;
         data += memory->loadAddr(PC + 1);
-        std::cout << "Executing instruction at address " << std::hex << PC << ": ";
+        std::cout << std::hex << data << " : " << std::hex <<  PC << ": ";
         PC+=2;
         // decode step
         switch (data & 0xF000) {
@@ -75,6 +79,7 @@ void CPU::CPUthread() {
                     case 0x0E0:
                         // clear screen
                         std::cout << "clear screen\n";
+                        Display::getInstance()->clear();
                         break;
                     case 0x0EE:
                         // return from subroutine / break
@@ -104,17 +109,19 @@ void CPU::CPUthread() {
             case 0x6000:
             {
                 // set register
-                uint8_t vx = static_cast<uint8_t>(data & 0x0F00);
+                uint8_t vx = static_cast<uint8_t>((data & 0x0F00) >> 8);
                 uint8_t imm = static_cast<uint8_t>(data & 0x00FF);
                 std::cout << "set register " << std::hex << static_cast<int>(vx) << " to " << std::hex << static_cast<int>(imm) << "\n";
+                reg[vx] = imm;
                 break;
             }
             case 0x7000:
             {
                 // add immediate to register
-                uint8_t vx = static_cast<uint8_t>(data & 0x0F00);
+                uint8_t vx = static_cast<uint8_t>((data & 0x0F00) >> 8);
                 uint8_t imm = static_cast<uint8_t>(data & 0x00FF);
                 std::cout << "Add " << std::hex << static_cast<int>(imm) << " to register " << std::hex << static_cast<int>(vx) << "\n";
+                reg[vx] += imm;
                 break;
             }
             case 0x8000:
@@ -158,8 +165,13 @@ void CPU::CPUthread() {
                 // skip if registers not equal
                 break;
             case 0xA000:
+            {
+                uint16_t imm = static_cast<uint16_t>(data & 0x0FFF);
+                std::cout << "set index register to " << std::hex << imm << std::endl;
+                indexRegister = imm;
                 // set index register to immediate
                 break;
+            }
 
             case 0xB000:
                 // jump with offset: jump to value of V0+immediate
@@ -170,10 +182,39 @@ void CPU::CPUthread() {
             case 0xD000:
             {
                 // display/draw
-                uint8_t vx = static_cast<uint8_t>(data & 0x0F00);
-                uint8_t vy = static_cast<uint8_t>(data & 0x00F0);
+                uint8_t vx = static_cast<uint8_t>((data & 0x0F00) >> 8);
+                uint8_t vy = static_cast<uint8_t>((data & 0x00F0) >> 4);
+                if (vx >= 16 || vy >= 16) {
+                    state = 3;
+                    throw "Invalid register access";
+                }
+                uint8_t x = reg[vx] & 0x3F; // mod 64
+                uint8_t y = reg[vy] & 0x1F; // mod 32
                 uint8_t n = static_cast<uint8_t>(data & 0x000F);
-                std::cout << "draw sprite at (" << std::hex << static_cast<int>(vx) << ", " << std::hex << static_cast<int>(vy) << ") of height " << std::hex << static_cast<int>(n) << "\n";
+
+                std::cout << "draw sprite at (" << std::hex << static_cast<int>(x) << ", " << std::hex << static_cast<int>(y) << ") of height " << std::hex << static_cast<int>(n) << std::endl;
+                VF = 0;
+
+                auto display = Display::getInstance();
+                for (uint8_t i=0; i<n; ++i) {
+
+                    uint8_t row = MemoryManager::getInstance()->loadAddr(indexRegister + i);
+                    std::cout << std::bitset<8>(row) << std::endl;
+                    auto tx = x;
+                    for (uint8_t bitmask = 0x80; bitmask != 0; bitmask >>= 1) {
+                        if (bitmask & row) {
+                            if (display->getPixel(tx, y)) {
+                                VF = 1;
+                            }
+                            display->togglePixel(tx, y);
+                        }
+                        tx++;
+                        if (x >= 0x3F) break;
+                    }
+                    y++;
+                    if (y >= 0x1F) break;
+                }
+
 
                 break;
 

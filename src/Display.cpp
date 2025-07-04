@@ -2,6 +2,16 @@
 #include "SDL3/SDL_render.h"
 #include <iostream>
 
+Display* Display::instance = nullptr;
+std::mutex Display::mtx;
+
+Display* Display::getInstance() {
+    std::lock_guard<std::mutex> lock(mtx);
+    if (instance == nullptr) {
+        instance = new Display();
+    }
+    return instance;
+}
 Display::Display(): width{128}, height{64}, scaleFactor{4}{
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         std::cerr << "SDL Init failed: " << SDL_GetError() << "\n";

@@ -3,13 +3,14 @@
 #include <stack>
 #include <thread>
 #include "Memory.h"
+#include "Display.h"
 
 class CPU {
     static CPU* instance;
     static std::mutex mtx;
     
     unsigned int PC: 12;
-    unsigned int indexRegister: 16;
+    uint16_t indexRegister: 16;
     uint8_t delayTimer;
     uint8_t soundTimer;
     uint8_t reg[16];
@@ -26,6 +27,9 @@ class CPU {
     // 0xFF for terminated
     // 0x01 for invalid instruction error
     uint8_t state = 0;
+    // for communication with memory, display
+    MemoryManager* memory;
+    Display* display;
 
     void delayTimerThread();
     void soundTimerThread();

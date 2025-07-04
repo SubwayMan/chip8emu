@@ -6,9 +6,8 @@ class MemoryManager {
     static MemoryManager* instance;
     static std::mutex mtx;
     char mem[4096];
-
     MemoryManager();
-
+    
     void loadFont(const unsigned char* const font);
 
 public:

@@ -19,10 +19,10 @@ int main(int argc, char* argv[]) {
 
     p->loadProgram(file);
     file.close();
-    Display display;
+    Display* display = Display::getInstance();
 
     for (int i=0; i<128; ++i) {
-        display.togglePixel(i, 10);
+        display->togglePixel(i, 10);
     }
 
 
@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        display.render();
+        display->render();
         SDL_Delay(16);
     }
 
